@@ -14,11 +14,34 @@
 
 #include <QtCore>
 #include <QtGui>
+
+#include <QTimer>
 using namespace std;
 
 
-GameWindow::GameWindow()
+GameWindow::GameWindow(int refresh_rate, Camera* c) : carte(1), m_refresh_rate(refresh_rate), animate(true), speed(0.5f)
 {
+    if(c != 0){
+        share_cam = true;
+        m_camera = c;
+    }else{
+        share_cam = false;
+        m_camera = new Camera();
+    }
+
+    m_timer = new QTimer(this);
+    connect(m_timer,SIGNAL(timeout()),this, SLOT(renderNow()));
+
+    restartTimer();
+}
+
+GameWindow::~GameWindow(){
+    delete p;
+
+    if(!share_cam)
+        delete m_camera;
+
+    delete m_timer;
 }
 
 void GameWindow::initialize()
@@ -72,11 +95,11 @@ void GameWindow::render()
 
 
     glLoadIdentity();
-   glScalef(ss,ss,ss);
-    glRotatef(rotX,1.0f,0.0f,0.0f);
-    glRotatef(rotY,0.0f,0.0f,1.0f);
+    glScalef(m_camera->ss,m_camera->ss,m_camera->ss);
+    glRotatef(m_camera->rotX,1.0f,0.0f,0.0f);
+    glRotatef(m_camera->rotY,0.0f,0.0f,1.0f);
 
-    switch(etat)
+    switch(m_camera->etat)
     {
     case 0:
         displayPoints();
@@ -103,6 +126,9 @@ void GameWindow::render()
         break;
     }
 
+    if(animate){
+        animWindow();
+    }
 
     ++m_frame;
 }
@@ -113,7 +139,7 @@ bool GameWindow::event(QEvent *event)
     {
     case QEvent::UpdateRequest:
 
-        renderNow();
+        //renderNow();
         return true;
     default:
         return QWindow::event(event);
@@ -125,27 +151,44 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
     switch(event->key())
     {
     case 'Z':
-        ss += 0.10f;
+        m_camera->ss += 0.10f;
         break;
     case 'S':
-        ss -= 0.10f;
+        m_camera->ss -= 0.10f;
         break;
     case 'A':
-        rotX += 1.0f;
+        m_camera->rotX += 1.0f;
         break;
     case 'E':
-        rotX -= 1.0f;
+        m_camera->rotX -= 1.0f;
         break;
     case 'Q':
-        rotY += 1.0f;
+        m_camera->rotY += 1.0f;
         break;
     case 'D':
-        rotY -= 1.0f;
+        m_camera->rotY -= 1.0f;
         break;
     case 'W':
-        etat ++;
-        if(etat > 5)
-            etat = 0;
+        m_camera->etat ++;
+        if(m_camera->etat > 5)
+            m_camera->etat = 0;
+        break;
+    case 'C':
+        animate = !animate;
+        break;
+    case 'P':
+        m_refresh_rate *= 2;
+        if(m_refresh_rate > 120)
+            m_refresh_rate = 120;
+
+        restartTimer();
+        break;
+    case 'M':
+        m_refresh_rate /= 2;
+        if(m_refresh_rate < 1)
+            m_refresh_rate = 1;
+
+        restartTimer();
         break;
     case 'X':
         carte ++;
@@ -158,7 +201,7 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
         loadMap(depth);
         break;
     }
-    renderNow();
+    //renderNow();
 }
 
 
@@ -415,7 +458,7 @@ void GameWindow::displayColor(float alt)
 {
     if (alt > 0.2)
     {
-        glColor3f(01.0f, 1.0f, 1.0f);
+        glColor3f(1.0f, 1.0f, 1.0f);
     }
     else     if (alt > 0.1)
     {
@@ -423,11 +466,24 @@ void GameWindow::displayColor(float alt)
     }
     else     if (alt > 0.05f)
     {
-        glColor3f(01.0f, alt, alt);
+        glColor3f(1.0f, alt, alt);
     }
     else
     {
         glColor3f(0.0f, 0.0f, 1.0f);
     }
 
+}
+
+void GameWindow::animWindow(){
+    m_camera->rotY += speed;
+}
+
+void GameWindow::restartTimer(){
+    m_timer->stop();
+    m_timer->start(1000.f / m_refresh_rate);
+
+    QString fps = QString::number(m_refresh_rate);
+    QString title = fps + "FPS";
+    setTitle(title);
 }
