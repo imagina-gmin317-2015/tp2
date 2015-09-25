@@ -1,4 +1,5 @@
 #include "gamewindow.h"
+#include "camera.h"
 
 #include <QtGui/QGuiApplication>
 #include <QtGui/QMatrix4x4>
@@ -28,12 +29,20 @@ int main(int argc, char **argv)
     QSurfaceFormat format;
     format.setSamples(16);
 
-    GameWindow window;
-    window.setFormat(format);
-    window.resize(640, 480);
-    window.show();
+    Camera* camera = new Camera();
 
-    window.setAnimating(true);
+    int freqs[] = {1,30,60,120};
+
+    for(int i = 0; i < 4; i++){
+        GameWindow* window = new GameWindow(freqs[i]);
+        window->setCamera(camera);
+        window->setFormat(format);
+        window->resize(640, 480);
+        window->show();
+
+        window->setAnimating(true);
+    }
+
 
     return app.exec();
 }
