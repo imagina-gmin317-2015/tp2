@@ -21,6 +21,9 @@ GameWindow::GameWindow(Camera* camera, int fps) : m_camera(camera),m_fps(fps)
 {
 
 }
+float fps_to_timeout(int m_fps){
+    return 1000.0f / (float) m_fps;
+}
 
 void GameWindow::initialize()
 {
@@ -41,7 +44,7 @@ void GameWindow::initialize()
     loadMap(":/heightmap-2.png");
     m_timer = new QTimer(this);
     connect(m_timer,SIGNAL(timeout()),this,SLOT(renderNow()));
-    m_timer->start((float) m_fps/(float)1000);
+    m_timer->start(fps_to_timeout(m_fps));
 }
 
 void GameWindow::loadMap(QString localPath)
@@ -157,18 +160,20 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
             m_camera->setEtat(0);
         break;
     case 'P': {
+        //Multiplication par 2 de la fréquence de rafraichissement
         m_fps*=2;
-        m_timer->start((float) m_fps/(float)1000);
+        m_timer->start(fps_to_timeout(m_fps));
         QString str = "TP2 - ";
         str.append( QString::number(m_fps));
         str.append(" fps");
         setTitle(str);
         break;}
     case 'M': {
+        // Division par 2 de la fréquence de rafraichissement
         if(m_fps!=1)
         {
             m_fps/=2;
-            m_timer->start((float) m_fps/(float)1000);
+            m_timer->start(fps_to_timeout(m_fps));
             QString str = "TP2 - ";
             str.append( QString::number(m_fps));
             str.append(" fps");
@@ -176,6 +181,7 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
         }
         break;}
     case 'X':
+        //Changement de carte
         carte ++;
         if(carte > 3)
             carte = 1;

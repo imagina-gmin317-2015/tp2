@@ -49,6 +49,6 @@ private:
 
 
 };
-
+float fps_to_timeout(int m_fps);
 
 #endif // GAMEWINDOW_H
