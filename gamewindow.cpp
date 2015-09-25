@@ -72,7 +72,7 @@ void GameWindow::render()
 
 
     glLoadIdentity();
-   glScalef(ss,ss,ss);
+    glScalef(ss,ss,ss);
     glRotatef(rotX,1.0f,0.0f,0.0f);
     glRotatef(rotY,0.0f,0.0f,1.0f);
 
