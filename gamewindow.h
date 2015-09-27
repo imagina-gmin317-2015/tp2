@@ -45,15 +45,14 @@ private:
 
 
     int carte;
-    int m_refresh_rate;
+    int m_refresh_rate; 		// Taux de rafraichissement de la fenêtre.
 
-    bool share_cam;
-    Camera* m_camera;
+    bool share_cam;				// Permet de savoir si la caméra est partagée par plusieurs instances.
+    Camera* m_camera;			// Pointeur vers la caméra de la fenêtre.
 
-    QTimer* m_timer;
+    QTimer* m_timer;			// Timer permettant un rafraichissement à temps fixe de la fenêtre.
 
-    bool animate;
-    float speed;
+    float speed;				// Vitesse de rotation du terrain selon l'axe y quand animate = true.
 };
 
 
