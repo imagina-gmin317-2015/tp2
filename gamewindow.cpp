@@ -14,13 +14,48 @@
 
 #include <QtCore>
 #include <QtGui>
+
+#include <QTimer>
 using namespace std;
 
+static bool animate = true; //permet de savoir si on anime les terrain des différentes fenêtre GameWindow en les faisant tourner selon l'axe y
 
-GameWindow::GameWindow()
+/**
+ * @brief GameWindow::GameWindow, constructeur de la classe GameWindow.
+ * @param refresh_rate, taux de rafraîchissement de la fenêtre
+ * @param c, paramètre facultatif qui permet d'avoir une caméra partagée par plusieurs fenêtres
+ */
+GameWindow::GameWindow(int refresh_rate, Camera* c) : carte(1), m_refresh_rate(refresh_rate), speed(0.5f)
 {
+    if(c != 0){
+        share_cam = true;
+        m_camera = c;
+    }else{
+        share_cam = false;
+        m_camera = new Camera();
+    }
+
+    m_timer = new QTimer(this);
+    connect(m_timer,SIGNAL(timeout()),this, SLOT(renderNow()));
+
+    restartTimer();
 }
 
+/**
+ * @brief GameWindow::~GameWindow, destructeur de la classe GameWindow.
+ */
+GameWindow::~GameWindow(){
+    delete p;
+
+    if(!share_cam)
+        delete m_camera;
+
+    delete m_timer;
+}
+
+/**
+ * @brief GameWindow::initialize, initialise les fonctionnalités OpenGL et charge une heightmap.
+ */
 void GameWindow::initialize()
 {
     const qreal retinaScale = devicePixelRatio();
@@ -38,6 +73,10 @@ void GameWindow::initialize()
 
 }
 
+/**
+ * @brief GameWindow::loadMap, permet de charger une heightmap.
+ * @param localPath, chemin vers la heightmap
+ */
 void GameWindow::loadMap(QString localPath)
 {
 
@@ -65,6 +104,9 @@ void GameWindow::loadMap(QString localPath)
     }
 }
 
+/**
+ * @brief GameWindow::render, fonction de rendu OpenGL contenant plusieurs type de rendu.
+ */
 void GameWindow::render()
 {
 
@@ -72,11 +114,11 @@ void GameWindow::render()
 
 
     glLoadIdentity();
-   glScalef(ss,ss,ss);
-    glRotatef(rotX,1.0f,0.0f,0.0f);
-    glRotatef(rotY,0.0f,0.0f,1.0f);
+    glScalef(m_camera->ss,m_camera->ss,m_camera->ss);
+    glRotatef(m_camera->rotX,1.0f,0.0f,0.0f);
+    glRotatef(m_camera->rotY,0.0f,0.0f,1.0f);
 
-    switch(etat)
+    switch(m_camera->etat)
     {
     case 0:
         displayPoints();
@@ -104,9 +146,19 @@ void GameWindow::render()
     }
 
 
+
+    if(animate){
+        animWindow();
+    }
+
     ++m_frame;
 }
 
+/**
+ * @brief GameWindow::event, fonction permettant la gestion d'évenements.
+ * @param event, QEvent
+ * @return
+ */
 bool GameWindow::event(QEvent *event)
 {
     switch (event->type())
@@ -120,32 +172,53 @@ bool GameWindow::event(QEvent *event)
     }
 }
 
+/**
+ * @brief GameWindow::keyPressEvent, permet de gérer les évenements de type clavier.
+ * @param event, évenement de type clavier
+ */
 void GameWindow::keyPressEvent(QKeyEvent *event)
 {
     switch(event->key())
     {
     case 'Z':
-        ss += 0.10f;
+        m_camera->ss += 0.10f;
         break;
     case 'S':
-        ss -= 0.10f;
+        m_camera->ss -= 0.10f;
         break;
     case 'A':
-        rotX += 1.0f;
+        m_camera->rotX += 1.0f;
         break;
     case 'E':
-        rotX -= 1.0f;
+        m_camera->rotX -= 1.0f;
         break;
     case 'Q':
-        rotY += 1.0f;
+        m_camera->rotY += 1.0f;
         break;
     case 'D':
-        rotY -= 1.0f;
+        m_camera->rotY -= 1.0f;
         break;
     case 'W':
-        etat ++;
-        if(etat > 5)
-            etat = 0;
+        m_camera->etat ++;
+        if(m_camera->etat > 5)
+            m_camera->etat = 0;
+        break;
+    case 'C':
+        animate = !animate;
+        break;
+    case 'P':
+        m_refresh_rate *= 2;
+        if(m_refresh_rate > 120)
+            m_refresh_rate = 120;
+
+        restartTimer();
+        break;
+    case 'M':
+        m_refresh_rate /= 2;
+        if(m_refresh_rate < 1)
+            m_refresh_rate = 1;
+
+        restartTimer();
         break;
     case 'X':
         carte ++;
@@ -158,10 +231,11 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
         loadMap(depth);
         break;
     }
-    renderNow();
 }
 
-
+/**
+ * @brief GameWindow::displayPoints, fonction d'affichage du terrain avec des points.
+ */
 void GameWindow::displayPoints()
 {
     glColor3f(1.0f, 1.0f, 1.0f);
@@ -182,7 +256,9 @@ void GameWindow::displayPoints()
     glEnd();
 }
 
-
+/**
+ * @brief GameWindow::displayTriangles, fonction d'affichage du terrain avec des triangles.
+ */
 void GameWindow::displayTriangles()
 {
     glColor3f(1.0f, 1.0f, 1.0f);
@@ -233,6 +309,9 @@ void GameWindow::displayTriangles()
     glEnd();
 }
 
+/**
+ * @brief GameWindow::displayTrianglesC, fonction d'affichage du terrain avec des triangles de couleurs différentes.
+ */
 void GameWindow::displayTrianglesC()
 {
     glColor3f(1.0f, 1.0f, 1.0f);
@@ -282,7 +361,9 @@ void GameWindow::displayTrianglesC()
     glEnd();
 }
 
-
+/**
+ * @brief GameWindow::displayLines, fonction d'affichage du terrain avec des lignes.
+ */
 void GameWindow::displayLines()
 {
     glColor3f(1.0f, 1.0f, 1.0f);
@@ -355,6 +436,9 @@ void GameWindow::displayLines()
     glEnd();
 }
 
+/**
+ * @brief GameWindow::displayTrianglesTexture, fonction d'affichage du terrain avec des triangles texturés en fonction de la hauteur des vertices.
+ */
 void GameWindow::displayTrianglesTexture()
 {
     glColor3f(1.0f, 1.0f, 1.0f);
@@ -410,12 +494,15 @@ void GameWindow::displayTrianglesTexture()
     glEnd();
 }
 
-
+/**
+ * @brief GameWindow::displayColor, affiche une couleur sur les vertices en fonction de l'altitude de ceux-ci.
+ * @param alt, altitude en z
+ */
 void GameWindow::displayColor(float alt)
 {
     if (alt > 0.2)
     {
-        glColor3f(01.0f, 1.0f, 1.0f);
+        glColor3f(1.0f, 1.0f, 1.0f);
     }
     else     if (alt > 0.1)
     {
@@ -423,11 +510,30 @@ void GameWindow::displayColor(float alt)
     }
     else     if (alt > 0.05f)
     {
-        glColor3f(01.0f, alt, alt);
+        glColor3f(1.0f, alt, alt);
     }
     else
     {
         glColor3f(0.0f, 0.0f, 1.0f);
     }
 
+}
+
+/**
+ * @brief GameWindow::animWindow, fonction permettant la rotation automatique du terrain selon l'axe y.
+ */
+void GameWindow::animWindow(){
+    m_camera->rotY += speed;
+}
+
+/**
+ * @brief GameWindow::restartTimer, permet de relancer le timer lorsque celui-ci change.
+ */
+void GameWindow::restartTimer(){
+    m_timer->stop();
+    m_timer->start(1000.f / m_refresh_rate);
+
+    QString fps = QString::number(m_refresh_rate);
+    QString title = fps + "FPS";
+    setTitle(title);
 }

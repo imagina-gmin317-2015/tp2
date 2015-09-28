@@ -2,6 +2,7 @@
 #define GAMEWINDOW_H
 
 #include "openglwindow.h"
+#include "camera.h"
 
 
 struct point
@@ -14,7 +15,8 @@ struct point
 class GameWindow : public OpenGLWindow
 {
 public:
-    GameWindow();
+    GameWindow(int refresh_rate, Camera* c = 0);
+    ~GameWindow();
 
     void initialize();
     void render();
@@ -32,6 +34,9 @@ public:
 
     void loadMap(QString localPath);
 
+    void animWindow();
+    void restartTimer();
+
 private:
 
     int m_frame;
@@ -39,13 +44,15 @@ private:
     point *p;
 
 
-    int carte=1;
+    int carte;
+    int m_refresh_rate; 		// Taux de rafraîchissement de la fenêtre.
 
-    int etat = 0;
-    float rotX = -45.0;
-    float rotY = -45.0;
-    float ss = 1.0f;
+    bool share_cam;				// Permet de savoir si la caméra est partagée par plusieurs instances.
+    Camera* m_camera;			// Pointeur vers la caméra de la fenêtre.
 
+    QTimer* m_timer;			// Timer permettant un rafraîchissement à temps fixe de la fenêtre.
+
+    float speed;				// Vitesse de rotation du terrain selon l'axe y quand animate = true.
 };
 
 
