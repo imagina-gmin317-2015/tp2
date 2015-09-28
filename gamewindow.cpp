@@ -22,7 +22,7 @@ static bool animate = true; //permet de savoir si on anime les terrain des diff�
 
 /**
  * @brief GameWindow::GameWindow, constructeur de la classe GameWindow.
- * @param refresh_rate, taux de rafraichissement de la fenêtre
+ * @param refresh_rate, taux de rafraîchissement de la fenêtre
  * @param c, paramètre facultatif qui permet d'avoir une caméra partagée par plusieurs fenêtres
  */
 GameWindow::GameWindow(int refresh_rate, Camera* c) : carte(1), m_refresh_rate(refresh_rate), speed(0.5f)
