@@ -82,9 +82,9 @@ void GameWindow::render()
    /* glScalef(ss,ss,ss);// zoom, les trois paramètres correspondent aux trois axes
     glRotatef(rotX,1.0f,0.0f,0.0f);
     glRotatef(rotY,0.0f,0.0f,1.0f);*/
-
+    timer->setInterval(1000/fps);
     //this->camera->rotate();
-    this->camera->rotation();
+    this->camera->rotation(); // rotation sur l'axe des y
     this->camera->scale();
 
     switch(etat)
@@ -164,6 +164,14 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
         if(etat>5);
             etat = 0;
         break;
+    case 'C':
+        this->camera->setRota(!this->camera->getRota());
+        break;
+    case 'P':
+        this->fps = this->fps *2;
+        break;
+    case 'M':
+        this->fps = this->fps /2;
     case 'X':
         carte ++;
         if(carte > 3)

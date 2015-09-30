@@ -20,6 +20,9 @@ public:
     void setRot(float rotX, float rotY);
     void setScale(float ss);
     void rotation();
+    void setRota(bool rota);
+
+    bool getRota();
 
     int getEtat();
 
@@ -29,6 +32,7 @@ private:
     float rotX = -45.0; // angle de rotation de la camera sur l'axe des x
     float rotY = -45.0;// angle de rotation de la camera sur l'axe des y
     float ss = 1.0f;// zoom
+    bool rota=true; // vrai si rotation active, faux sinon
 };
 
 #endif // CAMERA_H

@@ -9,8 +9,8 @@ void Camera::initialize(){
 }
 
 void Camera::rotate(){
-    glRotatef(this->rotX,1.0f,0.0f,0.0f);
-    glRotatef(this->rotY,0.0f,0.0f,1.0f);
+        glRotatef(this->rotX,1.0f,0.0f,0.0f);
+        glRotatef(this->rotY,0.0f,0.0f,1.0f);
 }
 
 
@@ -45,8 +45,21 @@ void Camera::rotate(){
 }*/
 
 void Camera::rotation(){
-    setRot(0,1.0f);
-    rotate();
+    if(this->rota == true){
+        setRot(0,1.0f);
+        rotate();
+    }else{
+        setRot(0,0);
+        rotate();
+    }
+}
+
+void Camera::setRota(bool rota){
+    this->rota = rota;
+}
+
+bool Camera::getRota(){
+    return this->rota;
 }
 
 
