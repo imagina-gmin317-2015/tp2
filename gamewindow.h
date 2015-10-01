@@ -2,19 +2,18 @@
 #define GAMEWINDOW_H
 
 #include "openglwindow.h"
-
+#include "gamecamera.h"
+#include <QTimer>
 
 struct point
 {
     float x, y ,z;
 };
 
-
-
 class GameWindow : public OpenGLWindow
 {
 public:
-    GameWindow();
+    GameWindow(int fps, gamecamera* camera);
 
     void initialize();
     void render();
@@ -32,20 +31,21 @@ public:
 
     void loadMap(QString localPath);
 
+    void setCamera(gamecamera* camera);
+
+    gamecamera* getCamera();
+
 private:
 
     int m_frame;
     QImage m_image;
     point *p;
 
-
     int carte=1;
-
-    int etat = 0;
-    float rotX = -45.0;
-    float rotY = -45.0;
-    float ss = 1.0f;
-
+    gamecamera* m_camera;
+    bool m_hasToRotate = false;
+    QTimer* m_timer;
+    int m_fps;
 };
 
 

@@ -1,8 +1,10 @@
 INCLUDEPATH += $$PWD
 SOURCES += $$PWD/openglwindow.cpp \
-    gamewindow.cpp
+    gamewindow.cpp \
+    gamecamera.cpp
 HEADERS += $$PWD/openglwindow.h \
-    gamewindow.h
+    gamewindow.h \
+    gamecamera.h
 
 SOURCES += \
     main.cpp
