@@ -14,17 +14,21 @@
 
 #include <QtCore>
 #include <QtGui>
+
 using namespace std;
 
-
-GameWindow::GameWindow()
+GameWindow::GameWindow(int fps,gamecamera* camera)
 {
+    this->m_camera = camera;
+    m_timer = new QTimer(this);
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(renderNow()));
+    m_timer->start(1000/fps);
+    this->m_fps = fps;
 }
 
 void GameWindow::initialize()
 {
     const qreal retinaScale = devicePixelRatio();
-
 
     glViewport(0, 0, width() * retinaScale, height() * retinaScale);
 
@@ -33,18 +37,15 @@ void GameWindow::initialize()
     glLoadIdentity();
     glOrtho(-1.0, 1.0, -1.0, 1.0, -100.0, 100.0);
 
-
     loadMap(":/heightmap-2.png");
-
 }
 
 void GameWindow::loadMap(QString localPath)
 {
-
-    if (QFile::exists(localPath)) {
+    if (QFile::exists(localPath))
+    {
         m_image = QImage(localPath);
     }
-
 
     uint id = 0;
     p = new point[m_image.width() * m_image.height()];
@@ -65,18 +66,32 @@ void GameWindow::loadMap(QString localPath)
     }
 }
 
+gamecamera* GameWindow::getCamera()
+{
+    return this->m_camera;
+}
+
+void GameWindow::setCamera(gamecamera* camera)
+{
+    this->m_camera = camera;
+}
+
 void GameWindow::render()
 {
-
     glClear(GL_COLOR_BUFFER_BIT);
 
-
     glLoadIdentity();
-   glScalef(ss,ss,ss);
-    glRotatef(rotX,1.0f,0.0f,0.0f);
-    glRotatef(rotY,0.0f,0.0f,1.0f);
+    //float ss = this->camera->getScale();
+    //glScalef(ss,ss,ss);
+    m_camera->scale();
+    glRotatef(this->m_camera->getRotX(),1.0f,0.0f,0.0f);
 
-    switch(etat)
+    if(this->m_hasToRotate)
+        this->m_camera->setRotY(this->m_camera->getRotY() + 1.0f);
+
+    glRotatef(this->m_camera->getRotY(),0.0f,0.0f,1.0f);
+
+    switch(this->m_camera->getEtat())
     {
     case 0:
         displayPoints();
@@ -94,7 +109,6 @@ void GameWindow::render()
         displayTrianglesTexture();
         break;
     case 5:
-
         displayTrianglesTexture();
         displayLines();
         break;
@@ -125,30 +139,45 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
     switch(event->key())
     {
     case 'Z':
-        ss += 0.10f;
+        this->m_camera->setScale(this->m_camera->getScale()+0.10f);
         break;
     case 'S':
-        ss -= 0.10f;
+        this->m_camera->setScale(this->m_camera->getScale()-0.10f);
         break;
     case 'A':
-        rotX += 1.0f;
+        this->m_camera->setRotX(this->m_camera->getRotX()+1.0f);
         break;
     case 'E':
-        rotX -= 1.0f;
+        this->m_camera->setRotX(this->m_camera->getRotX()-1.0f);
         break;
     case 'Q':
-        rotY += 1.0f;
+        this->m_camera->setRotY(this->m_camera->getRotY()+1.0f);
         break;
     case 'D':
-        rotY -= 1.0f;
+        this->m_camera->setRotY(this->m_camera->getRotY()-1.0f);
         break;
     case 'W':
-        etat ++;
-        if(etat > 5)
-            etat = 0;
+        this->m_camera->setEtat((this->m_camera->getEtat() + 1) % 6);
+        break;
+    case 'C':
+        this->m_hasToRotate = !this->m_hasToRotate;
+        break;
+    case 'P':
+        if(this->m_fps < 2000)
+            this->m_fps *= 2;
+
+        this->m_timer->stop();
+        this->m_timer->start(1000/m_fps);
+        break;
+    case 'M':
+        if(this->m_fps > 2)
+            this->m_fps /= 2;
+
+        this->m_timer->stop();
+        this->m_timer->start(1000/m_fps);
         break;
     case 'X':
-        carte ++;
+        carte++;
         if(carte > 3)
             carte = 1;
         QString depth (":/heightmap-");
@@ -158,7 +187,7 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
         loadMap(depth);
         break;
     }
-    renderNow();
+    //renderNow();
 }
 
 
