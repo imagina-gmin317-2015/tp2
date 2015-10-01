@@ -14,10 +14,20 @@
 
 #include <QtCore>
 #include <QtGui>
+#include "camera.h"
 using namespace std;
 
 
+void createWindow(Camera* camera, float framerate) {
+    QSurfaceFormat format;
+    format.setSamples(16);
 
+    GameWindow *w = new GameWindow(camera, framerate);
+    w->setFormat(format);
+    w->resize(640, 480);
+    w->show();
+    w->setAnimating(true);
+}
 
 
 int main(int argc, char **argv)
@@ -25,15 +35,11 @@ int main(int argc, char **argv)
     srand(time(NULL));
     QGuiApplication app(argc, argv);
 
-    QSurfaceFormat format;
-    format.setSamples(16);
-
-    GameWindow window;
-    window.setFormat(format);
-    window.resize(640, 480);
-    window.show();
-
-    window.setAnimating(true);
+    Camera *c = new Camera();
+    createWindow(c, 1.0f / 120.0f);
+    createWindow(c, 1.0f / 60.0f);
+    createWindow(c, 1.0f / 30.0f);
+    createWindow(c, 1.0f / 1.0f);
 
     return app.exec();
 }
