@@ -2,7 +2,7 @@
 #define GAMEWINDOW_H
 
 #include "openglwindow.h"
-
+#include "Camera.h"
 
 struct point
 {
@@ -14,7 +14,7 @@ struct point
 class GameWindow : public OpenGLWindow
 {
 public:
-    GameWindow();
+    GameWindow(int fps, Camera* camera);
 
     void initialize();
     void render();
@@ -34,17 +34,14 @@ public:
 
 private:
 
+    Camera* m_camera;
     int m_frame;
     QImage m_image;
     point *p;
-
-
     int carte=1;
-
-    int etat = 0;
-    float rotX = -45.0;
-    float rotY = -45.0;
-    float ss = 1.0f;
+    bool m_isRotating;
+    QTimer * m_timer;
+    int m_fps;
 
 };
 

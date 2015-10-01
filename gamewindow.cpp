@@ -17,8 +17,14 @@
 using namespace std;
 
 
-GameWindow::GameWindow()
+GameWindow::GameWindow(int fps, Camera* camera)
 {
+    m_fps = fps;
+    m_isRotating = false;
+    m_timer = new QTimer(this);
+    m_timer->connect(m_timer, SIGNAL(timeout()),this, SLOT(renderNow()));
+    m_timer->start(1000/fps);
+    m_camera = camera;
 }
 
 void GameWindow::initialize()
@@ -33,7 +39,6 @@ void GameWindow::initialize()
     glLoadIdentity();
     glOrtho(-1.0, 1.0, -1.0, 1.0, -100.0, 100.0);
 
-
     loadMap(":/heightmap-2.png");
 
 }
@@ -44,7 +49,6 @@ void GameWindow::loadMap(QString localPath)
     if (QFile::exists(localPath)) {
         m_image = QImage(localPath);
     }
-
 
     uint id = 0;
     p = new point[m_image.width() * m_image.height()];
@@ -70,13 +74,17 @@ void GameWindow::render()
 
     glClear(GL_COLOR_BUFFER_BIT);
 
+    if(m_isRotating)
+        m_camera->set_rotY(m_camera->get_rotY() + 1.0f);
 
     glLoadIdentity();
-   glScalef(ss,ss,ss);
-    glRotatef(rotX,1.0f,0.0f,0.0f);
-    glRotatef(rotY,0.0f,0.0f,1.0f);
+    m_camera->scale();
+    glRotatef(m_camera->get_rotX(),1.0f,0.0f,0.0f);
+    glRotatef(m_camera->get_rotY(),0.0f,0.0f,1.0f);
 
-    switch(etat)
+
+
+    switch(m_camera->get_etat())
     {
     case 0:
         displayPoints();
@@ -124,28 +132,51 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
 {
     switch(event->key())
     {
+    case 'C':
+    {
+        m_isRotating = !m_isRotating;
+        break;
+    }
+    case 'P':
+    {
+        if(m_fps < 1000){
+            m_timer->stop();
+            m_fps *= 2;
+            m_timer->start(1000/m_fps);
+        }
+        break;
+    }
+    case 'M':
+    {
+        if(m_fps >= 2){
+            m_timer->stop();
+            m_fps /= 2;
+            m_timer->start(1000/m_fps);
+        }
+        break;
+    }
     case 'Z':
-        ss += 0.10f;
+        m_camera->set_ss(m_camera->get_ss()+0.10f);
         break;
     case 'S':
-        ss -= 0.10f;
+        m_camera->set_ss(m_camera->get_ss()-0.10f);
         break;
     case 'A':
-        rotX += 1.0f;
+        m_camera->set_rotX(m_camera->get_rotX()+1.0f);
         break;
     case 'E':
-        rotX -= 1.0f;
+        m_camera->set_rotX(m_camera->get_rotX()-1.0f);
         break;
     case 'Q':
-        rotY += 1.0f;
+        m_camera->set_rotY(m_camera->get_rotY()+1.0f);
         break;
     case 'D':
-        rotY -= 1.0f;
+        m_camera->set_rotY(m_camera->get_rotY()-1.0f);
         break;
     case 'W':
-        etat ++;
-        if(etat > 5)
-            etat = 0;
+        m_camera->set_etat(m_camera->get_etat()+1);
+        if(m_camera->get_etat() > 5)
+            m_camera->set_etat(0);
         break;
     case 'X':
         carte ++;
@@ -157,8 +188,9 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
 
         loadMap(depth);
         break;
+
     }
-    renderNow();
+    //renderNow();
 }
 
 
