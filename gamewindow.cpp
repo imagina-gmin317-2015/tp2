@@ -14,11 +14,30 @@
 
 #include <QtCore>
 #include <QtGui>
+#include <QTimer>
+
 using namespace std;
 
 
-GameWindow::GameWindow()
+GameWindow::GameWindow(int fps, Camera *camera)
 {
+    m_camera = camera;
+    m_isRotating = false;
+    m_fps = fps;
+
+    m_timer = new QTimer(this);
+    m_timer->connect(m_timer, SIGNAL(timeout()),this, SLOT(renderNow()));
+    m_timer->start(1000/fps);
+}
+
+void GameWindow::setCamera(Camera *camera)
+{
+   this-> m_camera = camera;
+}
+
+Camera* GameWindow::getCamera()
+{
+    return this->m_camera;
 }
 
 void GameWindow::initialize()
@@ -72,11 +91,15 @@ void GameWindow::render()
 
 
     glLoadIdentity();
-   glScalef(ss,ss,ss);
-    glRotatef(rotX,1.0f,0.0f,0.0f);
-    glRotatef(rotY,0.0f,0.0f,1.0f);
+    m_camera->scale();
 
-    switch(etat)
+    if(m_isRotating)
+        m_camera->setRotY(m_camera->getRotY() + 1);
+
+    glRotatef(m_camera->getRotX(),1.0f,0.0f,0.0f);
+    glRotatef(m_camera->getRotY(),0.0f,0.0f,1.0f);
+
+    switch(m_camera->getEtat())
     {
     case 0:
         displayPoints();
@@ -125,29 +148,30 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
     switch(event->key())
     {
     case 'Z':
-        ss += 0.10f;
+        m_camera->setSS(m_camera->getSS() + 0.10f);
         break;
     case 'S':
-        ss -= 0.10f;
+        m_camera->setSS(m_camera->getSS() - 0.10f);
         break;
     case 'A':
-        rotX += 1.0f;
+        m_camera->setRotX(m_camera->getRotX() + 1.0f);
         break;
     case 'E':
-        rotX -= 1.0f;
+        m_camera->setRotX(m_camera->getRotX() - 1.0f);
         break;
     case 'Q':
-        rotY += 1.0f;
+        m_camera->setRotY(m_camera->getRotY() + 1.0f);
         break;
     case 'D':
-        rotY -= 1.0f;
+        m_camera->setRotY(m_camera->getRotY() - 1.0f);
         break;
     case 'W':
-        etat ++;
-        if(etat > 5)
-            etat = 0;
+        m_camera->setEtat(m_camera->getEtat() + 1);
+        if(m_camera->getEtat() > 5)
+            m_camera->setEtat(0);
         break;
     case 'X':
+    {
         carte ++;
         if(carte > 3)
             carte = 1;
@@ -158,7 +182,35 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
         loadMap(depth);
         break;
     }
-    renderNow();
+    case 'C':
+    {
+        m_isRotating = !m_isRotating;
+        break;
+    }
+    case 'P':
+    {
+        if(m_fps < 1000)
+        {
+            m_fps *= 2;
+            m_timer->stop();
+            m_timer->start(1000/m_fps);
+        }
+        break;
+    }
+    case 'M':
+    {
+        if(m_fps > 2)
+        {
+            m_fps /= 2;
+            m_timer->stop();
+            m_timer->start(1000/m_fps);
+        }
+
+        break;
+    }
+
+    }
+    //renderNow();
 }
 
 
