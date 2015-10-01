@@ -14,11 +14,20 @@
 
 #include <QtCore>
 #include <QtGui>
+#include <QTimer>
 using namespace std;
 
 
 GameWindow::GameWindow()
 {
+}
+
+GameWindow::GameWindow(int frequence){
+    this->frequence = frequence;
+}
+
+void GameWindow::setCamera(Camera *cam){
+    this->cam = cam;
 }
 
 void GameWindow::initialize()
@@ -32,10 +41,11 @@ void GameWindow::initialize()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-1.0, 1.0, -1.0, 1.0, -100.0, 100.0);
-
-
     loadMap(":/heightmap-2.png");
 
+    this->timer = new QTimer(this);
+    this->timer->connect(timer, SIGNAL(timeout()),this,SLOT(renderNow()));
+    this->timer->start(1000/this->frequence);
 }
 
 void GameWindow::loadMap(QString localPath)
@@ -70,11 +80,12 @@ void GameWindow::render()
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-
     glLoadIdentity();
-   glScalef(ss,ss,ss);
-    glRotatef(rotX,1.0f,0.0f,0.0f);
-    glRotatef(rotY,0.0f,0.0f,1.0f);
+    glScalef(this->cam->ss,this->cam->ss,this->cam->ss);
+    glRotatef(this->cam->rotX,1.0f,0.0f,0.0f);
+    glRotatef(this->cam->rotY,0.0f,0.0f,1.0f);
+
+    this->cam->rotation(0.0f, 1.0f);
 
     switch(etat)
     {
@@ -112,8 +123,6 @@ bool GameWindow::event(QEvent *event)
     switch (event->type())
     {
     case QEvent::UpdateRequest:
-
-        renderNow();
         return true;
     default:
         return QWindow::event(event);
@@ -125,22 +134,35 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
     switch(event->key())
     {
     case 'Z':
-        ss += 0.10f;
+        this->cam->ss += 0.10f;
         break;
     case 'S':
-        ss -= 0.10f;
+        this->cam->ss -= 0.10f;
         break;
     case 'A':
-        rotX += 1.0f;
+        this->cam->rotX += 1.0f;
         break;
     case 'E':
-        rotX -= 1.0f;
+        this->cam->rotX -= 1.0f;
         break;
     case 'Q':
-        rotY += 1.0f;
+        this->cam->rotY += 1.0f;
         break;
     case 'D':
-        rotY -= 1.0f;
+        this->cam->rotY -= 1.0f;
+        break;
+    case 'C':
+        this->cam->autorotation = !this->cam->autorotation;
+        break;
+    case 'P':
+        this->frequence*=2;
+        this->timer->stop();
+        this->timer->start(1000/this->frequence);
+        break;
+    case 'M':
+        this->frequence/=2;
+        this->timer->stop();
+        this->timer->start(1000/this->frequence);
         break;
     case 'W':
         etat ++;
