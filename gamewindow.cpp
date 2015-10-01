@@ -17,14 +17,21 @@
 using namespace std;
 
 
-GameWindow::GameWindow()
+GameWindow::GameWindow(Camera* camera, int fps) : m_camera(camera),m_fps(fps)
 {
+
+}
+float fps_to_timeout(int m_fps){
+    return 1000.0f / (float) m_fps;
 }
 
 void GameWindow::initialize()
 {
     const qreal retinaScale = devicePixelRatio();
-
+    QString str = "TP2 - ";
+    str.append( QString::number(m_fps));
+    str.append(" fps");
+    setTitle(str);
 
     glViewport(0, 0, width() * retinaScale, height() * retinaScale);
 
@@ -35,7 +42,9 @@ void GameWindow::initialize()
 
 
     loadMap(":/heightmap-2.png");
-
+    m_timer = new QTimer(this);
+    connect(m_timer,SIGNAL(timeout()),this,SLOT(renderNow()));
+    m_timer->start(fps_to_timeout(m_fps));
 }
 
 void GameWindow::loadMap(QString localPath)
@@ -67,16 +76,16 @@ void GameWindow::loadMap(QString localPath)
 
 void GameWindow::render()
 {
-
+    if(m_camera->isAutoMove())
+        m_camera->setRotY(m_camera->getRotY() + 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-
     glLoadIdentity();
-   glScalef(ss,ss,ss);
-    glRotatef(rotX,1.0f,0.0f,0.0f);
-    glRotatef(rotY,0.0f,0.0f,1.0f);
+   glScalef(m_camera->getScale(),m_camera->getScale(),m_camera->getScale());
+    glRotatef(m_camera->getRotX(),1.0f,0.0f,0.0f);
+    glRotatef(m_camera->getRotY(),0.0f,0.0f,1.0f);
 
-    switch(etat)
+    switch(m_camera->getEtat())
     {
     case 0:
         displayPoints();
@@ -125,29 +134,54 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
     switch(event->key())
     {
     case 'Z':
-        ss += 0.10f;
+        m_camera->setScale(m_camera->getScale() + 0.10f);
+        break;
+    case 'C':
+        m_camera->flipAutoMove();
         break;
     case 'S':
-        ss -= 0.10f;
+        m_camera->setScale(m_camera->getScale() - 0.10f);
         break;
     case 'A':
-        rotX += 1.0f;
+        m_camera->setRotX(m_camera->getRotX() + 1.0f);
         break;
     case 'E':
-        rotX -= 1.0f;
+        m_camera->setRotX(m_camera->getRotX() - 1.0f);
         break;
     case 'Q':
-        rotY += 1.0f;
+        m_camera->setRotY(m_camera->getRotY() + 1.0f);
         break;
     case 'D':
-        rotY -= 1.0f;
+        m_camera->setRotY(m_camera->getRotY() - 1.0f);
         break;
     case 'W':
-        etat ++;
-        if(etat > 5)
-            etat = 0;
+        m_camera->incrEtat();
+        if(m_camera->getEtat() > 5)
+            m_camera->setEtat(0);
         break;
+    case 'P': {
+        //Multiplication par 2 de la fréquence de rafraichissement
+        m_fps*=2;
+        m_timer->start(fps_to_timeout(m_fps));
+        QString str = "TP2 - ";
+        str.append( QString::number(m_fps));
+        str.append(" fps");
+        setTitle(str);
+        break;}
+    case 'M': {
+        // Division par 2 de la fréquence de rafraichissement
+        if(m_fps!=1)
+        {
+            m_fps/=2;
+            m_timer->start(fps_to_timeout(m_fps));
+            QString str = "TP2 - ";
+            str.append( QString::number(m_fps));
+            str.append(" fps");
+            setTitle(str);
+        }
+        break;}
     case 'X':
+        //Changement de carte
         carte ++;
         if(carte > 3)
             carte = 1;
@@ -157,6 +191,7 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
 
         loadMap(depth);
         break;
+
     }
     renderNow();
 }
@@ -415,7 +450,7 @@ void GameWindow::displayColor(float alt)
 {
     if (alt > 0.2)
     {
-        glColor3f(01.0f, 1.0f, 1.0f);
+        glColor3f(1.0f, 1.0f, 1.0f);
     }
     else     if (alt > 0.1)
     {
@@ -423,7 +458,7 @@ void GameWindow::displayColor(float alt)
     }
     else     if (alt > 0.05f)
     {
-        glColor3f(01.0f, alt, alt);
+        glColor3f(1.0f, alt, alt);
     }
     else
     {

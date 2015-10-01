@@ -1,8 +1,11 @@
+CONFIG += c++11
 INCLUDEPATH += $$PWD
 SOURCES += $$PWD/openglwindow.cpp \
-    gamewindow.cpp
+    gamewindow.cpp \
+    camera.cpp
 HEADERS += $$PWD/openglwindow.h \
-    gamewindow.h
+    gamewindow.h \
+    camera.h
 
 SOURCES += \
     main.cpp
