@@ -2,7 +2,8 @@
 #define GAMEWINDOW_H
 
 #include "openglwindow.h"
-
+#include "camera.h"
+#include <QTimer>
 
 struct point
 {
@@ -13,8 +14,10 @@ struct point
 
 class GameWindow : public OpenGLWindow
 {
+
 public:
     GameWindow();
+    GameWindow(Camera *camera, int f);
 
     void initialize();
     void render();
@@ -31,6 +34,8 @@ public:
     void displayColor(float);
 
     void loadMap(QString localPath);
+    Camera *cam;
+
 
 private:
 
@@ -41,11 +46,16 @@ private:
 
     int carte=1;
 
+
+    /*
     int etat = 0;
     float rotX = -45.0;
     float rotY = -45.0;
     float ss = 1.0f;
+    */
 
+    int freq=150;
+    QTimer *timer;
 };
 
 

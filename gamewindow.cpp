@@ -14,6 +14,7 @@
 
 #include <QtCore>
 #include <QtGui>
+
 using namespace std;
 
 
@@ -21,10 +22,27 @@ GameWindow::GameWindow()
 {
 }
 
+GameWindow::GameWindow(Camera *camera, int f)
+{
+    freq=f;
+    cam = camera;
+}
+
 void GameWindow::initialize()
 {
     const qreal retinaScale = devicePixelRatio();
 
+    // timer pour l'échantillonage
+    timer = new QTimer(this);
+
+    timer->connect(timer, SIGNAL(timeout()),this, SLOT(renderNow()));
+    timer->start(freq);
+    /*
+    QTimer *timerC = new QTimer(this);
+
+    timerC->connect(timerC, SIGNAL(timeout()),this, SLOT(GameWindow::rotateY()));
+    timerC->start(1000);
+*/
 
     glViewport(0, 0, width() * retinaScale, height() * retinaScale);
 
@@ -72,11 +90,11 @@ void GameWindow::render()
 
 
     glLoadIdentity();
-   glScalef(ss,ss,ss);
-    glRotatef(rotX,1.0f,0.0f,0.0f);
-    glRotatef(rotY,0.0f,0.0f,1.0f);
+    glScalef(cam->ss,cam->ss,cam->ss);
+    glRotatef(cam->rotX,1.0f,0.0f,0.0f);
+    glRotatef(cam->rotY,0.0f,0.0f,1.0f);
 
-    switch(etat)
+    switch(cam->etat)
     {
     case 0:
         displayPoints();
@@ -125,27 +143,41 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
     switch(event->key())
     {
     case 'Z':
-        ss += 0.10f;
+        cam->ss += 0.10f;
         break;
     case 'S':
-        ss -= 0.10f;
+        cam->ss -= 0.10f;
         break;
     case 'A':
-        rotX += 1.0f;
+        cam->rotX += 1.0f;
+
         break;
     case 'E':
-        rotX -= 1.0f;
+        cam->rotX -= 1.0f;
         break;
     case 'Q':
-        rotY += 1.0f;
+        cam->rotY += 1.0f;
         break;
     case 'D':
-        rotY -= 1.0f;
+        cam->rotY -= 1.0f;
         break;
     case 'W':
-        etat ++;
-        if(etat > 5)
-            etat = 0;
+        cam->etat ++;
+        if(cam->etat > 5)
+            cam->etat = 0;
+        break;
+    case 'C':
+        cam->toRot=!cam->toRot;
+        break;
+    case 'M':
+        freq*=2;
+        this->timer->stop();
+        this->timer->start(freq);
+        break;
+    case 'P':
+        freq/=2;
+        this->timer->stop();
+        this->timer->start(freq);
         break;
     case 'X':
         carte ++;
@@ -158,8 +190,9 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
         loadMap(depth);
         break;
     }
-    renderNow();
+    //renderNow();
 }
+
 
 
 void GameWindow::displayPoints()
@@ -431,3 +464,5 @@ void GameWindow::displayColor(float alt)
     }
 
 }
+
+
