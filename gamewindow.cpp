@@ -21,10 +21,16 @@ GameWindow::GameWindow()
 {
 }
 
+GameWindow::GameWindow(int fps){
+    this->fps = fps;
+}
+
 void GameWindow::initialize()
 {
     const qreal retinaScale = devicePixelRatio();
-
+    this->timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(renderNow())); // la fonction renderNow() est appelée tout les tick du timer
+    timer->start(1000/this->fps); // fixe la fréquence d'echantillonage à "fps" images par secondes
 
     glViewport(0, 0, width() * retinaScale, height() * retinaScale);
 
@@ -72,9 +78,13 @@ void GameWindow::render()
 
 
     glLoadIdentity();
-   glScalef(ss,ss,ss);
+   /* glScalef(ss,ss,ss);// zoom, les trois paramètres correspondent aux trois axes
     glRotatef(rotX,1.0f,0.0f,0.0f);
-    glRotatef(rotY,0.0f,0.0f,1.0f);
+    glRotatef(rotY,0.0f,0.0f,1.0f);*/
+    timer->setInterval(1000/fps);
+    //this->camera->rotate();
+    this->camera->rotation(); // rotation sur l'axe des y
+    this->camera->scale();
 
     switch(etat)
     {
@@ -113,7 +123,7 @@ bool GameWindow::event(QEvent *event)
     {
     case QEvent::UpdateRequest:
 
-        renderNow();
+       // renderNow();
         return true;
     default:
         return QWindow::event(event);
@@ -125,28 +135,36 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
     switch(event->key())
     {
     case 'Z':
-        ss += 0.10f;
+        this->camera->setScale(0.10f);
         break;
     case 'S':
-        ss -= 0.10f;
+        this->camera->setScale(-0.10f);
         break;
     case 'A':
-        rotX += 1.0f;
+        this->camera->setRot(1.0f,0);
         break;
     case 'E':
-        rotX -= 1.0f;
+        this->camera->setRot(-1.0f,0);
         break;
     case 'Q':
-        rotY += 1.0f;
+        this->camera->setRot(0,1.0f);
         break;
     case 'D':
-        rotY -= 1.0f;
+        this->camera->setRot(0,-1.0f);
         break;
     case 'W':
         etat ++;
-        if(etat > 5)
+        if(etat>5);
             etat = 0;
         break;
+    case 'C':
+        this->camera->setRota(!this->camera->getRota());
+        break;
+    case 'P':
+        this->fps = this->fps *2;
+        break;
+    case 'M':
+        this->fps = this->fps /2;
     case 'X':
         carte ++;
         if(carte > 3)
@@ -158,7 +176,7 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
         loadMap(depth);
         break;
     }
-    renderNow();
+    //renderNow();
 }
 
 
@@ -430,4 +448,8 @@ void GameWindow::displayColor(float alt)
         glColor3f(0.0f, 0.0f, 1.0f);
     }
 
+}
+
+void GameWindow::setCamera(Camera*  cam){
+    this->camera=cam;
 }

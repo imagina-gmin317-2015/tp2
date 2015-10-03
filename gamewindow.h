@@ -2,12 +2,9 @@
 #define GAMEWINDOW_H
 
 #include "openglwindow.h"
+#include "camera.h"
 
 
-struct point
-{
-    float x, y ,z;
-};
 
 
 
@@ -15,6 +12,7 @@ class GameWindow : public OpenGLWindow
 {
 public:
     GameWindow();
+    GameWindow(int fps);
 
     void initialize();
     void render();
@@ -32,8 +30,13 @@ public:
 
     void loadMap(QString localPath);
 
+    void setCamera(Camera* cam);
+
 private:
 
+    Camera *camera;
+    QTimer *timer;
+    int fps = 60;
     int m_frame;
     QImage m_image;
     point *p;
