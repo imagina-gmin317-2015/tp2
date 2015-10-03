@@ -13,7 +13,6 @@ public:
     Camera();
     virtual void initialize();
     void rotate();
-    void changeTexture();
     void scale();
 
     void setEtat(int etat);

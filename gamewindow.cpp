@@ -28,10 +28,9 @@ GameWindow::GameWindow(int fps){
 void GameWindow::initialize()
 {
     const qreal retinaScale = devicePixelRatio();
-    //this->camera = new Camera();
     this->timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(renderNow()));
-    timer->start(1000/this->fps);
+    connect(timer, SIGNAL(timeout()), this, SLOT(renderNow())); // la fonction renderNow() est appelée tout les tick du timer
+    timer->start(1000/this->fps); // fixe la fréquence d'echantillonage à "fps" images par secondes
 
     glViewport(0, 0, width() * retinaScale, height() * retinaScale);
 
@@ -137,27 +136,21 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
     {
     case 'Z':
         this->camera->setScale(0.10f);
-        //ss += 0.10f;
         break;
     case 'S':
         this->camera->setScale(-0.10f);
-        //ss -= 0.10f;
         break;
     case 'A':
         this->camera->setRot(1.0f,0);
-        //rotX += 1.0f;
         break;
     case 'E':
         this->camera->setRot(-1.0f,0);
-        //rotX -= 1.0f;
         break;
     case 'Q':
         this->camera->setRot(0,1.0f);
-        //rotY += 1.0f;
         break;
     case 'D':
         this->camera->setRot(0,-1.0f);
-        //rotY -= 1.0f;
         break;
     case 'W':
         etat ++;
