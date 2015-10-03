@@ -5,6 +5,7 @@ Ce TP permet de voir comment travailler avec QTimer, avoir une classe Camera sé
 
 
 Question 1:
+----------
 
 Touche A: Permet d'incrémenter le paramètre rotX
 Touche Z: Permet d'incrémenter le paramètre ss
