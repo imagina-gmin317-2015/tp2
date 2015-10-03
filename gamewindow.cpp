@@ -21,10 +21,19 @@ GameWindow::GameWindow()
 {
 }
 
+GameWindow::GameWindow(Camera *camera, int freq)
+{
+    _camera = camera;
+    _freq = freq;
+}
+
 void GameWindow::initialize()
 {
     const qreal retinaScale = devicePixelRatio();
 
+    _timer = new QTimer(this);
+    _timer->connect(_timer, SIGNAL(timeout()), this, SLOT(renderNow()));
+    _timer->start(_freq);
 
     glViewport(0, 0, width() * retinaScale, height() * retinaScale);
 
@@ -72,11 +81,11 @@ void GameWindow::render()
 
 
     glLoadIdentity();
-   glScalef(ss,ss,ss);
-    glRotatef(rotX,1.0f,0.0f,0.0f);
-    glRotatef(rotY,0.0f,0.0f,1.0f);
+   glScalef(_camera->getSS(),_camera->getSS(),_camera->getSS());
+    glRotatef(_camera->getRotX(),1.0f,0.0f,0.0f);
+    glRotatef(_camera->getRotY(),0.0f,0.0f,1.0f);
 
-    switch(etat)
+    switch(_camera->getEtat())
     {
     case 0:
         displayPoints();
@@ -124,28 +133,42 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
 {
     switch(event->key())
     {
+    case Qt::Key_Escape:
+        close();
+        break;
+    case Qt::Key_C:
+        _camera->switchAutoRotate();
+        break;
+    case Qt::Key_P:
+        _freq *= 2;
+        _timer->start(_freq); //restart le timer avec la nouvelle frequence
+        break;
+    case Qt::Key_M:
+        _freq /= 2;
+        _timer->start(_freq); //restart le timer avec la nouvelle frequence
+        break;
     case 'Z':
-        ss += 0.10f;
+        _camera->setSS( _camera->getSS() + 0.10f );
         break;
     case 'S':
-        ss -= 0.10f;
+        _camera->setSS( _camera->getSS() - 0.10f );
         break;
     case 'A':
-        rotX += 1.0f;
+        _camera->setRotX( _camera->getRotX() + 1.0f );
         break;
     case 'E':
-        rotX -= 1.0f;
+        _camera->setRotX( _camera->getRotX() - 1.0f );
         break;
     case 'Q':
-        rotY += 1.0f;
+        _camera->setRotY( _camera->getRotY() + 1.0f );
         break;
     case 'D':
-        rotY -= 1.0f;
+        _camera->setRotY( _camera->getRotY() - 1.0f );
         break;
     case 'W':
-        etat ++;
-        if(etat > 5)
-            etat = 0;
+        _camera->setEtat( _camera->getEtat() + 1 );
+        if(_camera->getEtat() > 5)
+            _camera->setEtat(0);
         break;
     case 'X':
         carte ++;
@@ -158,7 +181,7 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
         loadMap(depth);
         break;
     }
-    renderNow();
+    //renderNow();
 }
 
 
