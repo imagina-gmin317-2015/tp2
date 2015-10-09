@@ -16,9 +16,28 @@
 #include <QtGui>
 using namespace std;
 
+bool GameWindow::rotating;
 
-GameWindow::GameWindow()
+GameWindow::GameWindow(int freq)
 {
+    frequency = freq;
+    rotating = true;
+    timer = new QTimer(this);
+    timer->connect(timer, SIGNAL(timeout()), this, SLOT(renderNow()));
+    timer->start(1000/getFrequency());
+}
+
+int GameWindow::getFrequency(){
+    return frequency;
+}
+
+void GameWindow::setCamera(Camera* c){
+    cam = c;
+}
+
+
+void GameWindow::updateId(int newId){
+    id = newId;
 }
 
 void GameWindow::initialize()
@@ -35,7 +54,6 @@ void GameWindow::initialize()
 
 
     loadMap(":/heightmap-2.png");
-
 }
 
 void GameWindow::loadMap(QString localPath)
@@ -72,11 +90,15 @@ void GameWindow::render()
 
 
     glLoadIdentity();
-   glScalef(ss,ss,ss);
-    glRotatef(rotX,1.0f,0.0f,0.0f);
-    glRotatef(rotY,0.0f,0.0f,1.0f);
-
-    switch(etat)
+    glScalef(cam->getSS(),cam->getSS(),cam->getSS());
+    glRotatef(cam->getRotX(),1.0f,0.0f,0.0f);
+    cam->sceneRotation(rotating);
+    glRotatef(cam->getRotY(),0.0f,0.0f,1.0f);
+    QString s = "TP2 ";
+    s.push_back(QString::number(frequency));
+    this->setTitle(s);
+    timer->start(1000/getFrequency());
+    switch(cam->getEtat())
     {
     case 0:
         displayPoints();
@@ -124,28 +146,44 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
 {
     switch(event->key())
     {
+    case 'C':
+        if(id==0){
+            if(rotating){
+                rotating = false;
+            }
+            else{
+                rotating = true;
+            }
+        }
+        break;
+    case 'P':
+        frequency *= 2;
+        break;
+    case 'M':
+        frequency /= 2;
+        break;
     case 'Z':
-        ss += 0.10f;
+        cam->setSS(cam->getSS() + 0.10f);
         break;
     case 'S':
-        ss -= 0.10f;
+        cam->setSS(cam->getSS() - 0.10f);
         break;
     case 'A':
-        rotX += 1.0f;
+        cam->setRotX(cam->getRotX() + 0.10f);
         break;
     case 'E':
-        rotX -= 1.0f;
+        cam->setRotX(cam->getRotX() - 0.10f);
         break;
     case 'Q':
-        rotY += 1.0f;
+        cam->setRotY(cam->getRotY() + 0.10f);
         break;
     case 'D':
-        rotY -= 1.0f;
+        cam->setRotY(cam->getRotY() - 0.10f);
         break;
     case 'W':
-        etat ++;
-        if(etat > 5)
-            etat = 0;
+        cam->setEtat(cam->getEtat() +1);
+        if(cam->getEtat() > 5)
+            cam->setEtat(0);
         break;
     case 'X':
         carte ++;
@@ -158,7 +196,7 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
         loadMap(depth);
         break;
     }
-    renderNow();
+    //renderNow();
 }
 
 

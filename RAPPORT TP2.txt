@@ -1,0 +1,14 @@
+Interactions utilisateurs :
+	A : Rotation verticale vers le haut
+	E : Rotation verticale vers le bas
+	Q : Rotation horizontale vers la gauche
+	D : Rotation horizontale vers la droite
+	Z : avance
+	S : recule
+	W : 
+	X : 
+
+Paramètres GameWindow :
+	etat : Correspond au mode d'affichage de la scène
+	ss : Une valeur multipliant uniformément la matrice courrante pour simuler un zoom/dézoom
+	rotX, rotY : angles de rotation
