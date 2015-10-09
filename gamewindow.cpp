@@ -21,6 +21,22 @@ GameWindow::GameWindow()
 {
 }
 
+GameWindow::GameWindow(int i){
+    fps = i;
+    timer = new QTimer(this);
+    timer->connect(timer, SIGNAL(timeout()), this, SLOT(renderNow()));
+    timer->start(1000 / this->getFps());
+}
+
+int GameWindow::getFps(){
+    return fps;
+}
+
+void GameWindow::setCam(Camera* c){
+    cam = c;
+}
+
+
 void GameWindow::initialize()
 {
     const qreal retinaScale = devicePixelRatio();
@@ -35,6 +51,9 @@ void GameWindow::initialize()
 
 
     loadMap(":/heightmap-2.png");
+    if(&cam == NULL){
+        cam = new Camera();
+    }
 
 }
 
@@ -67,16 +86,23 @@ void GameWindow::loadMap(QString localPath)
 
 void GameWindow::render()
 {
-
     glClear(GL_COLOR_BUFFER_BIT);
 
 
     glLoadIdentity();
-   glScalef(ss,ss,ss);
+
+    if(tourniquet){
+        cam->setRotY(cam->getRotY() + rotation);
+    }
+
+
+    cam->render();
+/*
+    glScalef(ss,ss,ss);
     glRotatef(rotX,1.0f,0.0f,0.0f);
     glRotatef(rotY,0.0f,0.0f,1.0f);
-
-    switch(etat)
+*/
+    switch(cam->getEtat())
     {
     case 0:
         displayPoints();
@@ -102,8 +128,6 @@ void GameWindow::render()
         displayPoints();
         break;
     }
-
-
     ++m_frame;
 }
 
@@ -125,27 +149,44 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
     switch(event->key())
     {
     case 'Z':
-        ss += 0.10f;
+        cam->setSs(cam->getSs() + zoom);
         break;
     case 'S':
-        ss -= 0.10f;
+        cam->setSs(cam->getSs() - zoom);
         break;
     case 'A':
-        rotX += 1.0f;
+        cam->setRotX(cam->getRotX() + rotation);
         break;
     case 'E':
-        rotX -= 1.0f;
+        cam->setRotX(cam->getRotX() - rotation);
         break;
     case 'Q':
-        rotY += 1.0f;
+        cam->setRotY(cam->getRotY() + rotation);
         break;
     case 'D':
-        rotY -= 1.0f;
+        cam->setRotY(cam->getRotY() - rotation);
         break;
     case 'W':
-        etat ++;
-        if(etat > 5)
-            etat = 0;
+        cam->setEtat(cam->getEtat() + 1);
+        if(cam->getEtat() > 5)
+            cam->setEtat(0);
+        break;
+    case 'C':
+        tourniquet = !tourniquet;
+        break;
+    case 'P':
+        fps *= 2;
+        if(fps < 240){
+            fps = 240;//limitation
+        }
+        timer->setInterval(1000 / fps);
+        break;
+    case 'M':
+        fps /= 2;
+        if(fps < 1){
+            fps = 1;//limitation
+        }
+        timer->setInterval(1000 / fps);
         break;
     case 'X':
         carte ++;
@@ -157,8 +198,9 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
 
         loadMap(depth);
         break;
+
     }
-    renderNow();
+    //renderNow();
 }
 
 

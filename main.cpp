@@ -28,12 +28,53 @@ int main(int argc, char **argv)
     QSurfaceFormat format;
     format.setSamples(16);
 
-    GameWindow window;
-    window.setFormat(format);
-    window.resize(640, 480);
-    window.show();
 
-    window.setAnimating(true);
+
+    //1FPS
+    GameWindow window1(1);
+    window1.setFormat(format);
+    window1.resize(320, 240);
+    window1.setPosition(0,0);
+    window1.show();
+
+
+    window1.setAnimating(true);
+
+    //30FPS
+    GameWindow window30(30);
+    window30.setFormat(format);
+    window30.resize(320, 240);
+    window30.setPosition(380,0);
+    window30.show();
+
+    window30.setAnimating(true);
+
+    //60FPS
+    GameWindow window60(60);
+    window60.setFormat(format);
+    window60.resize(320, 240);
+    window60.setPosition(0,290);
+    window60.show();
+
+    window60.setAnimating(true);
+
+    //120FPS
+    GameWindow window120(120);
+    window120.setFormat(format);
+    window120.resize(340, 240);
+    window120.setPosition(380,290);
+    window120.show();
+
+    window120.setAnimating(true);
+
+    Camera *c = new Camera();
+
+    window1.setCam(c);
+    window30.setCam(c);
+    window60.setCam(c);
+    window120.setCam(c);
+
+
 
     return app.exec();
 }
